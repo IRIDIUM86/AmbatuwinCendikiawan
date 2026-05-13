@@ -12,3 +12,9 @@ For backend, due to pyiceberg cannot be installed with pip 3.14 somehow, we are 
 
 Bedrock installation:
 "pip install boto3"
+
+
+to access the front end, run these in terminal:
+1. "npm install"
+2. "npm start"
+3. "npm run build"
