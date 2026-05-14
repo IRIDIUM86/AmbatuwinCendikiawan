@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorMessage Component Snapshot Test error message renders correctly and matches snapshot 1`] = `
+<div
+  class="flex flex-col items-center justify-center p-6 bg-red-50 border border-red-200 rounded-xl shadow-md"
+>
+  <svg
+    class="text-red-600 mb-4"
+    fill="none"
+    height="48"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="48"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+    />
+    <line
+      x1="12"
+      x2="12"
+      y1="8"
+      y2="12"
+    />
+    <line
+      x1="12"
+      x2="12.01"
+      y1="16"
+      y2="16"
+    />
+  </svg>
+  <p
+    class="text-gray-900 text-center mb-4 font-medium"
+  >
+    Test error
+  </p>
+  <button
+    class="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200 font-medium"
+  >
+    Retry
+  </button>
+</div>
+`;
