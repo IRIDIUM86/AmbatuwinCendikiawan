@@ -25,7 +25,7 @@ export default function EventDiscoveryComplete() {
   return (
     <>
       {/* Desktop Layout: Side-by-side */}
-      <div 
+      <div
         className="hidden lg:grid lg:grid-cols-2 min-h-[calc(100vh-64px)]"
         style={{ background: 'oklch(97% 0.008 85)' }}
       >
