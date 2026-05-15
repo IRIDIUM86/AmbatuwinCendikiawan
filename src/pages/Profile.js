@@ -115,9 +115,9 @@ export default function Profile() {
           setTimeout(() => reject(new Error('Query timed out')), 5000);
         });
         
-        // Query sme_profiles table filtered by user_id from session (Requirement 3.3, 6.7)
+        // Query sme_profile table filtered by user_id from session (Requirement 3.3, 6.7)
         const queryPromise = supabase
-          .from('sme_profiles')
+          .from('sme_profile')
           .select('*')
           .eq('user_id', session.user.id)
           .single();
@@ -464,13 +464,13 @@ export default function Profile() {
       if (profileExists) {
         // If profileExists is true, perform UPDATE operation (Requirement 2.6)
         savePromise = supabase
-          .from('sme_profiles')
+          .from('sme_profile')
           .update(profileData)
           .eq('user_id', session.user.id);
       } else {
         // If profileExists is false, perform INSERT operation (Requirement 2.7)
         savePromise = supabase
-          .from('sme_profiles')
+          .from('sme_profile')
           .insert([profileData]);
       }
       

@@ -28,7 +28,7 @@ import { supabase } from '../supabaseClient'
 export async function fetchAllEvents() {
   try {
     const { data, error } = await supabase
-      .from('bazaar_events_Table')
+      .from('bazaar_events')
       .select('*')
 
     if (error) {
