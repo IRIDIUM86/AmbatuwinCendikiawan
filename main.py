@@ -16,15 +16,15 @@ supabase_headers = {
     "Content-Type": "application/json"
 }
 
-def fetch_booth_data():
-    """Fetch booth data using HTTP requests"""
+def fetch_event_data():
+    """Fetch event data using HTTP requests"""
     try:
-        url = f"{supabase_url}/rest/v1/bazaar_booths?select=*"
+        url = f"{supabase_url}/rest/v1/bazaar_events?select=*"
         response = requests.get(url, headers=supabase_headers)
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"Error fetching booth data: {e}")
+        print(f"Error fetching event data: {e}")
         return []
 
 # --- 2. AWS Bedrock Connection ---
@@ -82,21 +82,21 @@ def ask_bedrock(prompt_text):
 # --- 4. Execution ---
 if __name__ == "__main__":
     print("\n" + "=" * 60)
-    print("BOOTH DATA ANALYSIS")
+    print("EVENT DATA ANALYSIS")
     print("=" * 60)
     
-    data = fetch_booth_data()
+    data = fetch_event_data()
     
     if data:
-        # Only send the first 5 booths to stay under the token limit
+        # Only send the first 5 events to stay under the token limit
         limited_data = data[:5]
-        print(f"\n[*] Found {len(data)} booths in database")
+        print(f"\n[*] Found {len(data)} events in database")
         print(f"[*] Sending top 5 to Bedrock for analysis...\n")
         
-        prompt = f"""Analyze the following booth data and provide insights about pricing, 
-availability, and features. Keep your response concise.
+        prompt = f"""Analyze the following event data and provide insights about types, 
+locations, and opportunities. Keep your response concise.
 
-Booth Data:
+Event Data:
 {json.dumps(limited_data, indent=2)}
 
 Provide a brief analysis."""
@@ -108,5 +108,5 @@ Provide a brief analysis."""
         print(result)
         print("\n" + "=" * 60)
     else:
-        print("\n[ERROR] No booth data found")
+        print("\n[ERROR] No event data found")
         print("Check your Supabase connection and table name")

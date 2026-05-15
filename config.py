@@ -21,4 +21,4 @@ BEDROCK_MODEL_ID = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 # Database Table Name
 # ===================
-DATABASE_TABLE_NAME = "bazaar_booths"
+DATABASE_TABLE_NAME = "bazaar_events"

@@ -1,0 +1,20 @@
+✅ BACKEND IS RUNNING!
+
+Server Status:
+- Running on http://127.0.0.1:5000
+- Also accessible on http://192.168.100.190:5000
+- Debug mode: ON
+- Debugger PIN: 249-586-269
+
+Next Steps:
+1. Open a NEW terminal window
+2. Run: npm start
+3. This will start the frontend on http://localhost:3000
+
+Testing:
+- Open another terminal
+- Run: test_integration.bat
+- Or manually test endpoints with curl
+
+Keep this terminal open while developing!
+Press Ctrl+C to stop the server.

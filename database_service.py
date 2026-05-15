@@ -14,7 +14,7 @@ class DatabaseService:
     def __init__(self, supabase_url: str, supabase_key: str):
         self.supabase_url = supabase_url.rstrip('/')
         self.supabase_key = supabase_key
-        self.events_table = "bazaar_booths"  # Adjust table name as needed
+        self.events_table = "bazaar_events"  # Updated to match frontend table name
         self.headers = {
             "apikey": self.supabase_key,
             "Authorization": f"Bearer {self.supabase_key}",
@@ -37,8 +37,7 @@ class DatabaseService:
         Fetch events filtered by specific criteria
         Performs database-level filtering before LLM processing
         
-        Note: Current table schema is for booths, not events
-        Filtering by price only for now
+        Note: Filtering based on event schema
         """
         try:
             url = f"{self.supabase_url}/rest/v1/{self.events_table}?select=*"

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Vendor Booth Finder - Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,95 +15,138 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: oklch(97% 0.008 85);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 280px;
+            background: linear-gradient(165deg, oklch(45% 0.15 25) 0%, oklch(35% 0.12 15) 100%);
+            z-index: 0;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: oklch(99% 0.005 85);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px oklch(0% 0 0 / 0.08), 0 24px 80px oklch(0% 0 0 / 0.12);
             width: 100%;
-            max-width: 800px;
+            max-width: 920px;
             height: 90vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
+            border: 1px solid oklch(92% 0.008 85);
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
+            background: oklch(99% 0.005 85);
+            color: oklch(25% 0.015 15);
+            padding: 48px 40px 32px;
+            border-bottom: 2px solid oklch(45% 0.15 25);
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 4px;
+            background: linear-gradient(90deg, oklch(45% 0.15 25) 0%, oklch(55% 0.18 35) 50%, oklch(45% 0.15 25) 100%);
         }
 
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
         }
 
         .header p {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 15px;
+            color: oklch(45% 0.02 15);
+            font-weight: 500;
+            letter-spacing: -0.01em;
         }
 
         .status {
-            padding: 10px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            padding: 16px 40px;
+            background: oklch(96% 0.008 85);
+            border-bottom: 1px solid oklch(90% 0.01 85);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            color: oklch(40% 0.02 15);
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: #6c757d;
+            background: oklch(60% 0.05 15);
+            border: 2px solid oklch(85% 0.01 15);
         }
 
         .status-dot.connected {
-            background: #28a745;
-            animation: pulse 2s infinite;
+            background: oklch(55% 0.18 145);
+            border-color: oklch(75% 0.12 145);
+            animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
+            padding: 32px 40px;
+            background: oklch(98% 0.006 85);
         }
 
         .message {
-            margin-bottom: 16px;
+            margin-bottom: 24px;
             display: flex;
-            gap: 12px;
-            animation: slideIn 0.3s ease-out;
+            gap: 16px;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(16px);
             }
             to {
                 opacity: 1;
@@ -113,49 +159,58 @@
         }
 
         .message-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 22px;
             flex-shrink: 0;
+            font-weight: 600;
         }
 
         .message.bot .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, oklch(45% 0.15 25) 0%, oklch(55% 0.18 35) 100%);
+            box-shadow: 0 2px 8px oklch(45% 0.15 25 / 0.25);
         }
 
         .message.user .message-avatar {
-            background: #6c757d;
+            background: oklch(88% 0.01 85);
+            color: oklch(35% 0.02 15);
+            border: 2px solid oklch(82% 0.015 85);
         }
 
         .message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            line-height: 1.5;
-            font-size: 14px;
+            max-width: 65%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
         }
 
         .message.bot .message-content {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
+            background: oklch(99% 0.005 85);
+            color: oklch(25% 0.015 15);
+            border: 1.5px solid oklch(90% 0.01 85);
+            box-shadow: 0 1px 3px oklch(0% 0 0 / 0.06);
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
+            background: oklch(45% 0.15 25);
+            color: oklch(99% 0.005 85);
+            border: 1.5px solid oklch(40% 0.14 20);
+            box-shadow: 0 2px 8px oklch(45% 0.15 25 / 0.2);
         }
 
         .typing-indicator {
             display: none;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
+            padding: 16px 20px;
+            background: oklch(99% 0.005 85);
+            border: 1.5px solid oklch(90% 0.01 85);
+            border-radius: 12px;
             width: fit-content;
         }
 
@@ -165,12 +220,12 @@
 
         .typing-indicator span {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
-            background: #667eea;
-            margin: 0 2px;
-            animation: typing 1.4s infinite;
+            background: oklch(45% 0.15 25);
+            margin: 0 3px;
+            animation: typing 1.4s ease-in-out infinite;
         }
 
         .typing-indicator span:nth-child(2) {
@@ -182,16 +237,25 @@
         }
 
         @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
+            0%, 60%, 100% { 
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% { 
+                transform: translateY(-12px);
+                opacity: 1;
+            }
         }
 
         .input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            padding: 24px 40px 32px;
+            background: oklch(99% 0.005 85);
+            border-top: 1px solid oklch(90% 0.01 85);
             display: flex;
             gap: 12px;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
         }
 
         .input-wrapper {
@@ -201,99 +265,139 @@
 
         #messageInput {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 24px;
-            font-size: 14px;
+            padding: 16px 20px;
+            border: 2px solid oklch(88% 0.01 85);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            background: oklch(99% 0.005 85);
+            color: oklch(25% 0.015 15);
+            letter-spacing: -0.01em;
+        }
+
+        #messageInput::placeholder {
+            color: oklch(65% 0.01 15);
         }
 
         #messageInput:focus {
-            border-color: #667eea;
+            border-color: oklch(45% 0.15 25);
+            box-shadow: 0 0 0 3px oklch(45% 0.15 25 / 0.1);
         }
 
         #sendButton {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 16px 32px;
+            background: oklch(45% 0.15 25);
+            color: oklch(99% 0.005 85);
             border: none;
-            border-radius: 24px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px oklch(45% 0.15 25 / 0.25);
         }
 
         #sendButton:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: oklch(50% 0.16 30);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px oklch(45% 0.15 25 / 0.35);
+        }
+
+        #sendButton:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         #sendButton:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
         }
 
         .quick-actions {
-            padding: 10px 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            padding: 16px 40px 0;
+            background: oklch(99% 0.005 85);
+            border-top: 1px solid oklch(90% 0.01 85);
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
         }
 
         .quick-action-btn {
-            padding: 6px 12px;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 16px;
-            font-size: 12px;
+            padding: 10px 18px;
+            background: oklch(96% 0.008 85);
+            border: 1.5px solid oklch(88% 0.01 85);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            color: oklch(35% 0.02 15);
+            letter-spacing: -0.01em;
         }
 
         .quick-action-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: oklch(45% 0.15 25);
+            color: oklch(99% 0.005 85);
+            border-color: oklch(40% 0.14 20);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px oklch(45% 0.15 25 / 0.2);
+        }
+
+        .quick-action-btn:active {
+            transform: translateY(0);
         }
 
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 20px;
-            font-size: 13px;
+            background: oklch(95% 0.05 25);
+            color: oklch(35% 0.08 25);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 16px 40px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1.5px solid oklch(85% 0.06 25);
             display: none;
+            letter-spacing: -0.01em;
         }
 
         .error-message.show {
             display: block;
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* Scrollbar styling */
         .chat-container::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: oklch(96% 0.008 85);
         }
 
         .chat-container::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 3px;
+            background: oklch(45% 0.15 25);
+            border-radius: 4px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: oklch(50% 0.16 30);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🍔 Food Vendor Booth Finder</h1>
-            <p>AI-powered chatbot to help you find the perfect booth</p>
+            <h1>🍔 Vendor Booth Matchmaker</h1>
+            <p>AI-powered event matching for food vendors</p>
         </div>
 
         <div class="status">
@@ -310,23 +414,23 @@
             <div class="message bot">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    Hello! I'm your booth finder assistant. I can help you find the perfect booth for your food business. Try asking me about available booths, pricing, or specific features you need!
+                    Hello! I'm your vendor matching assistant. I can help you find the perfect event opportunities for food vendors. Ask me about available events, pricing, locations, or specific requirements.
                 </div>
             </div>
         </div>
 
         <div class="quick-actions">
-            <button class="quick-action-btn" onclick="sendQuickMessage('What booths are available?')">
-                📋 Available Booths
+            <button class="quick-action-btn" onclick="sendQuickMessage('What events are available this month?')">
+                📋 Available Events
             </button>
-            <button class="quick-action-btn" onclick="sendQuickMessage('Show me affordable booths under 500')">
-                💰 Affordable Options
+            <button class="quick-action-btn" onclick="sendQuickMessage('Show me events under 3M budget')">
+                💰 Budget Options
             </button>
-            <button class="quick-action-btn" onclick="sendQuickMessage('I need a booth with parking')">
-                🚗 With Parking
+            <button class="quick-action-btn" onclick="sendQuickMessage('I need weekend events in Jakarta')">
+                📍 Jakarta Events
             </button>
-            <button class="quick-action-btn" onclick="sendQuickMessage('What features do booths have?')">
-                ⚡ Features
+            <button class="quick-action-btn" onclick="sendQuickMessage('What features do events offer?')">
+                ⚡ Event Features
             </button>
         </div>
 
@@ -335,7 +439,7 @@
                 <input 
                     type="text" 
                     id="messageInput" 
-                    placeholder="Ask me about booths..."
+                    placeholder="Ask about events, vendors, or requirements..."
                     onkeypress="handleKeyPress(event)"
                 >
             </div>
@@ -373,9 +477,9 @@
             try {
                 const response = await fetch(`${API_URL}/events/all`);
                 const data = await response.json();
-                document.getElementById('boothCount').textContent = `${data.total || 0} booths available`;
+                document.getElementById('boothCount').textContent = `${data.total || 0} events available`;
             } catch (error) {
-                document.getElementById('boothCount').textContent = 'Unable to load booths';
+                document.getElementById('boothCount').textContent = 'Unable to load events';
             }
         }
 

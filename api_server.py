@@ -145,7 +145,19 @@ def chat():
         # Generate chatbot response
         result = event_matcher.chat(user_message, conversation_history)
         
-        return jsonify(result)
+        # Ensure correct response format
+        if isinstance(result, dict):
+            return jsonify({
+                "success": True,
+                "response": result.get('response', result.get('message', str(result))),
+                "matches": result.get('matches', [])
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "response": str(result),
+                "matches": []
+            })
     
     except Exception as e:
         return jsonify({

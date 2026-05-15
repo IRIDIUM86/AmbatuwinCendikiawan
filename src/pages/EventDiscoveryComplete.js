@@ -1,44 +1,100 @@
-import React from 'react'
+import React, { useState } from 'react'
 import EventDiscoveryPane from '../components/EventDiscoveryPane'
 import ChatbotPane from '../components/ChatbotPane'
+import { MessageSquare, Calendar } from 'lucide-react'
 
 /**
  * EventDiscoveryComplete Page Component
  * 
- * Implements a split-screen layout with:
- * - Left pane: Event Discovery interface
- * - Right pane: AI Chatbot interface
+ * Implements a responsive layout with:
+ * - Mobile: Tabbed interface (Events / Chat)
+ * - Tablet/Desktop: Split-screen layout (Events | Chat)
  * 
  * Layout specifications:
- * - CSS Grid with grid-cols-2 for 50/50 split
+ * - Mobile (<1024px): Single pane with bottom tab navigation
+ * - Desktop (≥1024px): CSS Grid with grid-cols-2 for 50/50 split
  * - Positioned below Navigation Bar
  * - Fills remaining vertical space (min-h-screen minus navbar height)
- * - Premium light mode background (bg-gray-50)
+ * - Dark theme background
  * 
- * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 1.1
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 1.1, Responsive Design
  */
 export default function EventDiscoveryComplete() {
-  /**
-   * Handle AI message sending
-   * Placeholder for AI API integration
-   */
-  const handleSendMessage = async (message) => {
-    try {
-      // TODO: Integrate with AI API
-      // For now, return a simple response
-      return `I received your message: "${message}". This is a placeholder response. AI integration coming soon!`
-    } catch (err) {
-      throw new Error('Failed to process message')
-    }
-  }
+  const [activeTab, setActiveTab] = useState('events') // 'events' or 'chat'
 
   return (
-    <div className="grid grid-cols-2 min-h-[calc(100vh-64px)] bg-gray-50">
-      {/* Left Pane - Event Discovery */}
-      <EventDiscoveryPane />
+    <>
+      {/* Desktop Layout: Side-by-side */}
+      <div 
+        className="hidden lg:grid lg:grid-cols-2 min-h-[calc(100vh-64px)]"
+        style={{ background: 'oklch(97% 0.008 85)' }}
+      >
+        {/* Left Pane - Event Discovery */}
+        <EventDiscoveryPane />
 
-      {/* Right Pane - AI Chatbot */}
-      <ChatbotPane onSendMessage={handleSendMessage} />
-    </div>
+        {/* Right Pane - AI Chatbot */}
+        <ChatbotPane />
+      </div>
+
+      {/* Mobile/Tablet Layout: Tabbed Interface */}
+      <div 
+        className="lg:hidden flex flex-col min-h-[calc(100vh-64px)]"
+        style={{ background: 'oklch(97% 0.008 85)' }}
+      >
+        {/* Tab Content */}
+        <div className="flex-1 overflow-hidden">
+          {/* Events Tab Content */}
+          <div className={`h-full ${activeTab === 'events' ? 'block' : 'hidden'}`}>
+            <EventDiscoveryPane />
+          </div>
+
+          {/* Chat Tab Content */}
+          <div className={`h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
+            <ChatbotPane />
+          </div>
+        </div>
+
+        {/* Bottom Tab Navigation */}
+        <nav 
+          className="sticky bottom-0 border-t safe-area-inset-bottom"
+          style={{
+            background: 'oklch(99% 0.005 85)',
+            borderColor: 'oklch(90% 0.01 85)'
+          }}
+        >
+          <div className="grid grid-cols-2">
+            {/* Events Tab */}
+            <button
+              onClick={() => setActiveTab('events')}
+              className="flex flex-col items-center justify-center py-3 px-4 transition-colors duration-200 font-semibold"
+              style={{
+                color: activeTab === 'events' ? 'oklch(25% 0.015 15)' : 'oklch(65% 0.01 15)',
+                background: activeTab === 'events' ? 'oklch(96% 0.008 85)' : 'transparent'
+              }}
+              aria-label="View events"
+              aria-current={activeTab === 'events' ? 'page' : undefined}
+            >
+              <Calendar size={24} className="mb-1" />
+              <span className="text-xs">Events</span>
+            </button>
+
+            {/* Chat Tab */}
+            <button
+              onClick={() => setActiveTab('chat')}
+              className="flex flex-col items-center justify-center py-3 px-4 transition-colors duration-200 font-semibold"
+              style={{
+                color: activeTab === 'chat' ? 'oklch(25% 0.015 15)' : 'oklch(65% 0.01 15)',
+                background: activeTab === 'chat' ? 'oklch(96% 0.008 85)' : 'transparent'
+              }}
+              aria-label="Open chat"
+              aria-current={activeTab === 'chat' ? 'page' : undefined}
+            >
+              <MessageSquare size={24} className="mb-1" />
+              <span className="text-xs">Chat</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </>
   )
 }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { fetchAllEventsWithRetry, getUniqueEventTypes, getUniqueLocations } from '../utils/supabaseQueries'
+import apiService from '../services/apiService'
+import API_CONFIG from '../config/api'
 import EventCard from './EventCard'
 import EventFilter from './EventFilter'
 import EventDetailsModal from './EventDetailsModal'
@@ -45,9 +47,9 @@ export default function EventDiscoveryPane() {
   })
 
   /**
-   * Fetch events from Supabase on component mount
+   * Fetch events from Supabase or Backend API on component mount
    * Uses retry mechanism to handle transient failures
-   * Retrieves all required fields from bazaar_events_Table
+   * Retrieves all required fields from bazaar_events table
    */
   useEffect(() => {
     const fetchEvents = async () => {
@@ -55,9 +57,25 @@ export default function EventDiscoveryPane() {
         setLoading(true)
         setError(null)
         
-        const data = await fetchAllEventsWithRetry(3, 1000)
+        let data
+        
+        // Use backend API if configured, otherwise use direct Supabase
+        if (API_CONFIG.USE_BACKEND) {
+          console.log('Fetching events from backend API...')
+          const response = await apiService.getAllEvents()
+          
+          if (!response.success) {
+            throw new Error(response.error || 'Failed to fetch events from backend')
+          }
+          
+          data = response.events || []
+        } else {
+          console.log('Fetching events directly from Supabase...')
+          data = await fetchAllEventsWithRetry(3, 1000)
+        }
         
         setEvents(data || [])
+        setFilteredEvents(data || [])
         setFilteredEvents(data || [])
       } catch (err) {
         setError(err.message || 'Failed to fetch events')
@@ -158,11 +176,22 @@ export default function EventDiscoveryPane() {
       setLoading(true)
       setError(null)
       
-      const data = await fetchAllEventsWithRetry(3, 1000)
+      let data
+      
+      if (API_CONFIG.USE_BACKEND) {
+        const response = await apiService.getAllEvents()
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch events from backend')
+        }
+        data = response.events || []
+      } else {
+        data = await fetchAllEventsWithRetry(3, 1000)
+      }
       
       setEvents(data || [])
       setFilteredEvents(data || [])
     } catch (err) {
+      console.error('Fetch events error:', err)
       setError(err.message || 'Failed to fetch events')
       setEvents([])
       setFilteredEvents([])
@@ -174,8 +203,11 @@ export default function EventDiscoveryPane() {
   // Render loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-50">
-        <LoadingIndicator message="Loading events..." />
+      <div 
+        className="flex items-center justify-center h-full"
+        style={{ background: 'oklch(98% 0.006 85)' }}
+      >
+        <LoadingIndicator message="Finding events for you..." />
       </div>
     )
   }
@@ -183,14 +215,49 @@ export default function EventDiscoveryPane() {
   // Render error state
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-50">
-        <div className="text-center">
-          <ErrorMessage message={error} />
+      <div 
+        className="flex items-center justify-center h-full"
+        style={{ background: 'oklch(98% 0.006 85)' }}
+      >
+        <div className="text-center max-w-md px-6">
+          <div className="mb-4 text-5xl">⚠️</div>
+          <h2 
+            className="text-xl font-bold mb-3"
+            style={{ 
+              color: 'oklch(25% 0.015 15)',
+              fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+              letterSpacing: '-0.02em'
+            }}
+          >
+            Couldn't load events
+          </h2>
+          <p 
+            className="text-base mb-6 font-medium"
+            style={{ 
+              color: 'oklch(45% 0.02 15)',
+              letterSpacing: '-0.01em'
+            }}
+          >
+            {error}. Check your connection and try again.
+          </p>
           <button
             onClick={handleRetry}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+            className="px-6 py-3 rounded-xl font-bold transition-all duration-200"
+            style={{
+              background: 'oklch(45% 0.15 25)',
+              color: 'oklch(99% 0.005 85)',
+              boxShadow: '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = '0 4px 16px oklch(45% 0.15 25 / 0.35)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+            }}
           >
-            Retry
+            Try Again
           </button>
         </div>
       </div>
@@ -198,23 +265,90 @@ export default function EventDiscoveryPane() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
+    <div 
+      className="flex flex-col h-full border-r"
+      style={{
+        background: 'oklch(98% 0.006 85)',
+        borderColor: 'oklch(90% 0.01 85)'
+      }}
+    >
       {/* Event Cards Container - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div 
+        className="flex-1 overflow-y-auto p-6 sm:p-8"
+        role="region"
+        aria-live="polite"
+        aria-label="Event list"
+      >
         {filteredEvents.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-600">No events found</p>
+          <div className="flex flex-col items-center justify-center h-full text-center px-6 max-w-md mx-auto">
+            <div className="mb-6 text-7xl">📅</div>
+            <h2 
+              className="text-2xl font-bold mb-3"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+                letterSpacing: '-0.02em'
+              }}
+            >
+              {filters.type || filters.location ? 'No events match your filters' : 'No events yet'}
+            </h2>
+            <p 
+              className="text-base mb-6 font-medium leading-relaxed"
+              style={{ 
+                color: 'oklch(45% 0.02 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              {filters.type || filters.location 
+                ? "Try different filters or ask the AI assistant to find events that match your specific needs."
+                : "Events will appear here once added. Meanwhile, ask the AI assistant about vendor requirements or event planning tips."}
+            </p>
+            {(filters.type || filters.location) && (
+              <button
+                onClick={handleClearFilters}
+                className="px-6 py-3 rounded-xl font-bold transition-all duration-200 mb-4"
+                style={{
+                  background: 'oklch(45% 0.15 25)',
+                  color: 'oklch(99% 0.005 85)',
+                  boxShadow: '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.boxShadow = '0 4px 16px oklch(45% 0.15 25 / 0.35)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+                }}
+              >
+                Clear All Filters
+              </button>
+            )}
+            <p 
+              className="text-sm font-semibold"
+              style={{ 
+                color: 'oklch(65% 0.01 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              💡 Tip: Ask the AI to search by event type, location, or budget
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredEvents.map(event => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onSelect={handleEventCardClick}
-              />
-            ))}
-          </div>
+          <>
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              {filteredEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onSelect={handleEventCardClick}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 

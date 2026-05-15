@@ -13,14 +13,19 @@ import React from 'react'
  */
 export default function LoadingIndicator({ message = 'Loading...' }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
+    <div 
+      className="flex flex-col items-center justify-center py-12 px-4"
+      role="status"
+      aria-live="polite"
+      aria-label={message}
+    >
       {/* Spinner Animation */}
-      <div className="mb-4">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="mb-4" aria-hidden="true">
+        <div className="w-12 h-12 border-4 border-gray-700 border-t-blue-500 rounded-full animate-spin" />
       </div>
 
       {/* Loading Message */}
-      <p className="text-gray-600 text-base font-medium">{message}</p>
+      <p className="text-gray-400 text-base font-medium">{message}</p>
     </div>
   )
 }

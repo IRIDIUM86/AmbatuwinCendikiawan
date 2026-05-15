@@ -78,16 +78,34 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ background: 'oklch(0% 0 0 / 0.5)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
+      onClick={onClose}
     >
-      <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div 
+        className="rounded-xl shadow-lg p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        style={{
+          background: 'oklch(99% 0.005 85)',
+          border: '1.5px solid oklch(90% 0.01 85)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button (X icon) */}
         <button
           onClick={onClose}
-          className="float-right text-gray-600 hover:text-gray-900 transition-colors p-1"
+          className="float-right p-2 rounded-lg transition-all duration-200"
+          style={{ color: 'oklch(65% 0.01 15)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'oklch(96% 0.008 85)'
+            e.currentTarget.style.color = 'oklch(25% 0.015 15)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = 'oklch(65% 0.01 15)'
+          }}
           aria-label="Close modal"
           title="Close"
         >
@@ -99,22 +117,36 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
           <img
             src={event.cover_image_url}
             alt={event.event_name}
-            className="w-full h-48 object-cover rounded-lg mb-4"
+            className="w-full h-56 object-cover rounded-lg mb-6"
+            style={{ background: 'oklch(94% 0.008 85)' }}
           />
         )}
 
         {/* Event Name */}
         <h2 
           id="modal-title"
-          className="text-2xl font-bold text-gray-900 mb-2"
+          className="text-2xl sm:text-3xl font-bold mb-3 pr-10"
+          style={{ 
+            color: 'oklch(25% 0.015 15)',
+            fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+            letterSpacing: '-0.02em'
+          }}
         >
           {event.event_name}
         </h2>
 
         {/* Event Type Badge */}
         {event.event_type && (
-          <div className="mb-3">
-            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+          <div className="mb-4">
+            <span 
+              className="text-sm px-3 py-1.5 rounded-lg font-semibold"
+              style={{
+                background: 'oklch(96% 0.008 85)',
+                color: 'oklch(35% 0.02 15)',
+                border: '1.5px solid oklch(88% 0.01 85)',
+                letterSpacing: '-0.01em'
+              }}
+            >
               {event.event_type}
             </span>
           </div>
@@ -122,23 +154,43 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
 
         {/* Event Description */}
         {event.description && (
-          <p className="text-gray-600 mb-4 whitespace-pre-wrap">
+          <p 
+            className="mb-6 whitespace-pre-wrap font-medium leading-relaxed"
+            style={{ 
+              color: 'oklch(45% 0.02 15)',
+              letterSpacing: '-0.01em'
+            }}
+          >
             {event.description}
           </p>
         )}
 
         {/* Date & Time and Location */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           {/* Date & Time Section */}
           <div>
-            <p className="text-sm font-semibold text-gray-900 mb-1">Date & Time</p>
+            <p 
+              className="text-sm font-bold mb-2"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Date & Time
+            </p>
             {event.event_date && (
-              <p className="text-gray-600 text-sm">
+              <p 
+                className="text-sm font-medium mb-1"
+                style={{ color: 'oklch(45% 0.02 15)' }}
+              >
                 {formatDate(event.event_date)}
               </p>
             )}
             {event.start_time && event.end_time && (
-              <p className="text-gray-600 text-sm">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: 'oklch(45% 0.02 15)' }}
+              >
                 {event.start_time} - {event.end_time}
               </p>
             )}
@@ -146,12 +198,28 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
 
           {/* Location Section */}
           <div>
-            <p className="text-sm font-semibold text-gray-900 mb-1">Location</p>
+            <p 
+              className="text-sm font-bold mb-2"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Location
+            </p>
             {event.venue_name && (
-              <p className="text-gray-600 text-sm">{event.venue_name}</p>
+              <p 
+                className="text-sm font-medium mb-1"
+                style={{ color: 'oklch(45% 0.02 15)' }}
+              >
+                {event.venue_name}
+              </p>
             )}
             {event.city && event.state && (
-              <p className="text-gray-600 text-sm">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: 'oklch(45% 0.02 15)' }}
+              >
                 {event.city}, {event.state}
               </p>
             )}
@@ -160,25 +228,62 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
 
         {/* Target Industries */}
         {event.target_industries && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Target Industries</p>
-            <p className="text-gray-600 text-sm">{event.target_industries}</p>
+          <div className="mb-6">
+            <p 
+              className="text-sm font-bold mb-2"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Target Industries
+            </p>
+            <p 
+              className="text-sm font-medium"
+              style={{ color: 'oklch(45% 0.02 15)' }}
+            >
+              {event.target_industries}
+            </p>
           </div>
         )}
 
         {/* Target Audience */}
         {event.target_audience && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Target Audience</p>
-            <p className="text-gray-600 text-sm">{event.target_audience}</p>
+          <div className="mb-6">
+            <p 
+              className="text-sm font-bold mb-2"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Target Audience
+            </p>
+            <p 
+              className="text-sm font-medium"
+              style={{ color: 'oklch(45% 0.02 15)' }}
+            >
+              {event.target_audience}
+            </p>
           </div>
         )}
 
         {/* Expected Footfall */}
         {event.expected_footfall !== undefined && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Expected Footfall</p>
-            <p className="text-gray-600 text-sm">
+          <div className="mb-6">
+            <p 
+              className="text-sm font-bold mb-2"
+              style={{ 
+                color: 'oklch(25% 0.015 15)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Expected Footfall
+            </p>
+            <p 
+              className="text-sm font-medium"
+              style={{ color: 'oklch(45% 0.02 15)' }}
+            >
               {formatFootfall(event.expected_footfall)}
             </p>
           </div>
@@ -187,10 +292,16 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
         {/* Error Message Display */}
         {applicationError && (
           <div 
-            className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4"
+            className="px-4 py-3 rounded-xl mb-6 font-semibold text-sm"
+            style={{
+              background: 'oklch(95% 0.05 25)',
+              color: 'oklch(35% 0.08 25)',
+              border: '1.5px solid oklch(85% 0.06 25)',
+              letterSpacing: '-0.01em'
+            }}
             role="alert"
           >
-            <p className="text-sm">{applicationError}</p>
+            {applicationError}
           </div>
         )}
 
@@ -198,7 +309,23 @@ export default function EventDetailsModal({ event, isOpen, onClose, onApply }) {
         <button
           onClick={handleApply}
           disabled={applying}
-          className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          className="w-full py-4 rounded-xl font-bold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: 'oklch(45% 0.15 25)',
+            color: 'oklch(99% 0.005 85)',
+            boxShadow: '0 2px 8px oklch(45% 0.15 25 / 0.25)',
+            letterSpacing: '-0.01em'
+          }}
+          onMouseEnter={(e) => {
+            if (!applying) {
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = '0 4px 16px oklch(45% 0.15 25 / 0.35)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+          }}
           aria-label={applying ? 'Applying as vendor...' : 'Apply as vendor'}
         >
           {applying ? 'Applying...' : 'Apply as Vendor'}

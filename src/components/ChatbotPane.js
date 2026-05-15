@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Send } from 'lucide-react'
+import apiService from '../services/apiService'
+import WelcomeTooltip from './WelcomeTooltip'
 
 /**
  * ChatbotPane Component
@@ -29,7 +31,7 @@ export default function ChatbotPane({ onSendMessage }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! I\'m your AI assistant. How can I help you find the perfect event for your business today?',
+      text: 'Hello! I\'m your AI matching assistant. I can help you find events that match specific vendor requirements.\n\nTry asking me:\n\n• "Show me weekend events in Kuala Lumpur under 500 RM"\n\n• "What events have parking and electricity?"\n\n• "Find bazaars in June with high foot traffic"',
       role: 'ai',
       timestamp: new Date()
     }
@@ -51,11 +53,25 @@ export default function ChatbotPane({ onSendMessage }) {
   const API_TIMEOUT = 30000 // 30 seconds
 
   /**
+   * Parse markdown bold syntax (**text**) and return JSX elements
+   */
+  const parseMarkdown = (text) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g)
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const boldText = part.slice(2, -2)
+        return <strong key={index}>{boldText}</strong>
+      }
+      return part
+    })
+  }
+
+  /**
    * Auto-scroll to bottom when new messages arrive
    * Requirement 8.5: Chat_History SHALL automatically scroll to show the most recent message
    */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
   }, [messages, loading])
 
   /**
@@ -63,64 +79,32 @@ export default function ChatbotPane({ onSendMessage }) {
    * Requirement 9.1-9.8: Handle various error scenarios
    */
   const callAIAPI = async (userMessage) => {
-    const apiUrl = process.env.REACT_APP_AI_API_URL
-
-    // Check if API URL is configured
-    if (!apiUrl) {
-      throw new Error('AI API is not configured. Please set REACT_APP_AI_API_URL environment variable.')
-    }
-
     try {
-      // Create abort controller for timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT)
+      // Build conversation history from messages state
+      const conversationHistory = messages
+        .filter(msg => msg.role !== 'system')
+        .map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
 
-      // Make POST request to AI API
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: userMessage
-        }),
-        signal: controller.signal
-      })
+      // Call backend API
+      const response = await apiService.sendChatMessage(
+        userMessage,
+        conversationHistory
+      )
 
-      clearTimeout(timeoutId)
-
-      // Handle HTTP error responses (4xx, 5xx)
-      if (!response.ok) {
-        if (response.status >= 500) {
-          throw new Error('Server error. Please try again later.')
-        } else if (response.status >= 400) {
-          throw new Error('Request error. Please check your input and try again.')
-        }
+      // Check response format
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to get AI response')
       }
 
-      // Parse response
-      let data
-      try {
-        data = await response.json()
-      } catch (err) {
-        throw new Error('Invalid response from server.')
-      }
-
-      // Validate response content
-      if (!data || !data.response) {
-        throw new Error('No response from server.')
-      }
-
-      return data.response
-    } catch (err) {
-      // Handle specific error types
-      if (err.name === 'AbortError') {
-        throw new Error('Request timed out. Please try again.')
-      } else if (err instanceof TypeError) {
-        throw new Error('Network error. Please check your connection.')
-      } else {
-        throw err
-      }
+      // Return the AI response text
+      return response.response || response.message || 'No response from AI'
+      
+    } catch (error) {
+      console.error('Chat API Error:', error)
+      throw error
     }
   }
 
@@ -211,33 +195,97 @@ export default function ChatbotPane({ onSendMessage }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 border-l border-gray-200">
+    <div 
+      className="flex flex-col h-full border-l"
+      style={{
+        background: 'oklch(98% 0.006 85)',
+        borderColor: 'oklch(90% 0.01 85)'
+      }}
+    >
       {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-900">AI Assistant</h2>
-        <p className="text-sm text-gray-600">Ask me about events and opportunities</p>
+      <div 
+        className="border-b p-5 sm:p-6 relative"
+        style={{
+          background: 'oklch(99% 0.005 85)',
+          borderColor: 'oklch(90% 0.01 85)'
+        }}
+      >
+        <h2 
+          className="text-base sm:text-lg font-bold"
+          style={{ 
+            color: 'oklch(25% 0.015 15)',
+            fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+            letterSpacing: '-0.02em'
+          }}
+        >
+          AI Matching Assistant
+        </h2>
+        <p 
+          className="text-xs sm:text-sm font-medium"
+          style={{ 
+            color: 'oklch(45% 0.02 15)',
+            letterSpacing: '-0.01em'
+          }}
+        >
+          Find events that match your vendor needs
+        </p>
+
+        {/* Welcome tooltip for first-time users */}
+        <WelcomeTooltip
+          storageKey="chat-welcome-seen"
+          title="💬 AI-Powered Matching"
+          message="Ask me natural questions like 'Find weekend events in Jakarta under 3M' and I'll search and match events for you instantly."
+          position="bottom"
+        />
       </div>
 
       {/* Messages Container - Scrollable */}
       {/* Requirement 8.2: Chat_History section showing all messages */}
       {/* Requirement 8.5: Chat_History SHALL be scrollable and show most recent messages at bottom */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-5"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Chat message history"
+      >
         {messages.map(message => (
           <div
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-xl shadow-md ${
+              className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-4 py-3 rounded-xl ${
                 message.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-none'
-                  : 'bg-gray-200 text-gray-900 rounded-bl-none'
+                  ? 'rounded-br-sm'
+                  : 'rounded-bl-sm'
               }`}
+              style={message.role === 'user' ? {
+                background: 'oklch(45% 0.15 25)',
+                color: 'oklch(99% 0.005 85)',
+                boxShadow: '0 2px 8px oklch(45% 0.15 25 / 0.2)'
+              } : {
+                background: 'oklch(99% 0.005 85)',
+                color: 'oklch(25% 0.015 15)',
+                border: '1.5px solid oklch(90% 0.01 85)',
+                boxShadow: '0 1px 3px oklch(0% 0 0 / 0.06)'
+              }}
             >
-              <p className="text-sm">{message.text}</p>
-              <p className={`text-xs mt-1 ${
-                message.role === 'user' ? 'text-blue-100' : 'text-gray-600'
-              }`}>
+              <p 
+                className="text-sm leading-relaxed font-medium"
+                style={{ letterSpacing: '-0.01em', whiteSpace: 'pre-line' }}
+              >
+                {parseMarkdown(message.text)}
+              </p>
+              <p 
+                className="text-xs mt-1.5 font-medium"
+                style={{ 
+                  color: message.role === 'user' 
+                    ? 'oklch(85% 0.08 25)' 
+                    : 'oklch(65% 0.01 15)',
+                  letterSpacing: '-0.01em'
+                }}
+              >
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -248,11 +296,33 @@ export default function ChatbotPane({ onSendMessage }) {
         {/* Requirement 8.9: Display Loading_State indicator while waiting for AI_API response */}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-200 text-gray-900 px-4 py-2 rounded-xl rounded-bl-none shadow-md">
+            <div 
+              className="px-4 py-3 rounded-xl rounded-bl-sm"
+              style={{
+                background: 'oklch(99% 0.005 85)',
+                border: '1.5px solid oklch(90% 0.01 85)',
+                boxShadow: '0 1px 3px oklch(0% 0 0 / 0.06)'
+              }}
+            >
               <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div 
+                  className="w-2 h-2 rounded-full animate-bounce"
+                  style={{ background: 'oklch(45% 0.15 25)' }}
+                ></div>
+                <div 
+                  className="w-2 h-2 rounded-full animate-bounce"
+                  style={{ 
+                    background: 'oklch(55% 0.18 35)',
+                    animationDelay: '0.1s'
+                  }}
+                ></div>
+                <div 
+                  className="w-2 h-2 rounded-full animate-bounce"
+                  style={{ 
+                    background: 'oklch(45% 0.15 25)',
+                    animationDelay: '0.2s'
+                  }}
+                ></div>
               </div>
             </div>
           </div>
@@ -261,24 +331,60 @@ export default function ChatbotPane({ onSendMessage }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input Area - Larger touch targets */}
       {/* Requirement 8.6: message input area at the bottom with text input field and 'Send' button */}
-      <div className="bg-white border-t border-gray-200 p-4 shadow-md">
-        <div className="flex gap-2">
+      <div 
+        className="sticky bottom-0 z-10 p-5 sm:p-6"
+        style={{
+          background: 'oklch(99% 0.005 85)'
+        }}
+      >
+        <div className="flex gap-2 sm:gap-3">
           <textarea
             value={inputValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder="Ask about events, locations, or budgets..."
             disabled={loading}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-            rows="2"
+            className="flex-1 px-4 py-3 rounded-xl text-sm sm:text-base outline-none resize-none font-medium transition-all duration-200"
+            style={{
+              background: 'oklch(99% 0.005 85)',
+              border: '2px solid oklch(88% 0.01 85)',
+              color: 'oklch(25% 0.015 15)',
+              letterSpacing: '-0.01em'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'oklch(45% 0.15 25)'
+              e.target.style.boxShadow = '0 0 0 3px oklch(45% 0.15 25 / 0.1)'
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'oklch(88% 0.01 85)'
+              e.target.style.boxShadow = 'none'
+            }}
+            rows="1"
             aria-label="Message input"
+            aria-describedby="char-count"
+            maxLength={MAX_CHARS}
           />
           <button
             onClick={handleSendMessage}
             disabled={loading || !inputValue.trim()}
-            className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] p-3 rounded-xl transition-all duration-200 flex items-center justify-center font-bold disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+            style={{
+              background: 'oklch(45% 0.15 25)',
+              color: 'oklch(99% 0.005 85)',
+              boxShadow: '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && inputValue.trim()) {
+                e.currentTarget.style.transform = 'translateY(-1px)'
+                e.currentTarget.style.boxShadow = '0 4px 16px oklch(45% 0.15 25 / 0.35)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 2px 8px oklch(45% 0.15 25 / 0.25)'
+            }}
             aria-label="Send message"
           >
             <Send size={20} />
@@ -286,8 +392,16 @@ export default function ChatbotPane({ onSendMessage }) {
         </div>
         {/* Character count indicator */}
         {/* Requirement 11.10: Display character count indicator */}
-        <p className="text-xs text-gray-600 mt-2">
-          {inputValue.length}/{MAX_CHARS}
+        <p 
+          id="char-count" 
+          className="text-xs mt-2 font-semibold" 
+          style={{ 
+            color: 'oklch(65% 0.01 15)',
+            letterSpacing: '-0.01em'
+          }}
+          aria-live="polite"
+        >
+          {inputValue.length}/{MAX_CHARS} characters
         </p>
       </div>
     </div>
