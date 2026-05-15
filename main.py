@@ -70,6 +70,7 @@ def ask_bedrock(prompt_text):
 
     try:
         response = bedrock.invoke_model(
+            modelId="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             modelId=BEDROCK_MODEL_ID,  # From config.py
             body=body
         )
