@@ -31,7 +31,7 @@ export default function ChatbotPane({ onSendMessage }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! I\'m your AI matching assistant. I can help you find events that match specific vendor requirements.\n\nTry asking me:\n\n• "Show me weekend events in Kuala Lumpur under 500 RM"\n\n• "What events have parking and electricity?"\n\n• "Find bazaars in June with high foot traffic"',
+      text: 'Hello! I\'m your AI matching assistant. I can help you find events that match specific vendor requirements.\n\nTry asking me:\n\n- "Show me weekend events in Kuala Lumpur under 500 RM"\n\n- "What events have parking and electricity?"\n\n- "Find bazaars in June with high foot traffic"',
       role: 'ai',
       timestamp: new Date()
     }
@@ -210,7 +210,6 @@ export default function ChatbotPane({ onSendMessage }) {
           borderColor: 'oklch(90% 0.01 85)'
         }}
       >
-        <span className="text-2xl">🤖</span>
         <h2
           className="text-lg font-bold"
           style={{
@@ -225,7 +224,7 @@ export default function ChatbotPane({ onSendMessage }) {
         {/* Welcome tooltip for first-time users */}
         <WelcomeTooltip
           storageKey="chat-welcome-seen"
-          title="💬 AI-Powered Matching"
+          title="AI-Powered Matching"
           message="Ask me natural questions like 'Find weekend events in Jakarta under 3M' and I'll search and match events for you instantly."
           position="bottom"
         />

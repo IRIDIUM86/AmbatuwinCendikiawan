@@ -215,12 +215,11 @@ export default function EventDiscoveryPane() {
   // Render error state
   if (error) {
     return (
-      <div 
+      <div
         className="flex items-center justify-center h-full"
         style={{ background: 'oklch(98% 0.006 85)' }}
       >
         <div className="text-center max-w-md px-6">
-          <div className="mb-4 text-5xl">⚠️</div>
           <h2 
             className="text-xl font-bold mb-3"
             style={{ 
@@ -302,10 +301,9 @@ export default function EventDiscoveryPane() {
       >
         {filteredEvents.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6 max-w-md mx-auto">
-            <div className="mb-6 text-7xl">📅</div>
-            <h2 
+            <h2
               className="text-2xl font-bold mb-3"
-              style={{ 
+              style={{
                 color: 'oklch(25% 0.015 15)',
                 fontFamily: "'Space Grotesk', 'Inter', sans-serif",
                 letterSpacing: '-0.02em'
@@ -313,14 +311,14 @@ export default function EventDiscoveryPane() {
             >
               {filters.type || filters.location ? 'No events match your filters' : 'No events yet'}
             </h2>
-            <p 
+            <p
               className="text-base mb-6 font-medium leading-relaxed"
-              style={{ 
+              style={{
                 color: 'oklch(45% 0.02 15)',
                 letterSpacing: '-0.01em'
               }}
             >
-              {filters.type || filters.location 
+              {filters.type || filters.location
                 ? "Try different filters or ask the AI assistant to find events that match your specific needs."
                 : "Events will appear here once added. Meanwhile, ask the AI assistant about vendor requirements or event planning tips."}
             </p>
@@ -345,14 +343,14 @@ export default function EventDiscoveryPane() {
                 Clear All Filters
               </button>
             )}
-            <p 
+            <p
               className="text-sm font-semibold"
-              style={{ 
+              style={{
                 color: 'oklch(65% 0.01 15)',
                 letterSpacing: '-0.01em'
               }}
             >
-              💡 Tip: Ask the AI to search by event type, location, or budget
+              Tip: Ask the AI to search by event type, location, or budget
             </p>
           </div>
         ) : (

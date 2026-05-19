@@ -7,7 +7,6 @@ function EventCard({ event }) {
       {/* Placeholder Image with Gradient */}
       <div className="h-48 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
-        <span className="text-white text-6xl relative z-10 group-hover:scale-110 transition-transform duration-300">🎉</span>
       </div>
       
       {/* Card Content */}
@@ -16,17 +15,14 @@ function EventCard({ event }) {
         
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-slate-300">
-            <span className="mr-2">📅</span>
             <span className="text-sm">{event.date}</span>
           </div>
-          
+
           <div className="flex items-center text-slate-300">
-            <span className="mr-2">📍</span>
             <span className="text-sm">{event.location}</span>
           </div>
-          
+
           <div className="flex items-center text-slate-300">
-            <span className="mr-2">🏷️</span>
             <span className="text-sm font-medium text-cyan-400">{event.category}</span>
           </div>
         </div>
@@ -165,7 +161,6 @@ export default function EventDiscovery() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-slate-200 mb-2">No events found</h3>
             <p className="text-slate-400">Try adjusting your search or filter criteria</p>
           </div>
