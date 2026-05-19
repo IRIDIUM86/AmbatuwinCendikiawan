@@ -265,15 +265,36 @@ export default function EventDiscoveryPane() {
   }
 
   return (
-    <div 
+    <div
       className="flex flex-col h-full border-r"
       style={{
-        background: 'oklch(98% 0.006 85)',
-        borderColor: 'oklch(90% 0.01 85)'
+        background: '#FEFEFE',
+        borderColor: '#E0E0E0'
       }}
     >
+      {/* Header with Sort Options */}
+      {filteredEvents.length > 0 && (
+        <div
+          className="border-b px-6 sm:px-8 py-3 flex justify-between items-center"
+          style={{
+            background: 'oklch(99% 0.005 85)',
+            borderColor: 'oklch(90% 0.01 85)'
+          }}
+        >
+          <span className="text-sm font-medium" style={{ color: 'oklch(45% 0.02 15)' }}>
+            Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
+          </span>
+          <button
+            className="text-sm font-semibold flex items-center gap-1 hover:underline"
+            style={{ color: 'oklch(25% 0.015 15)' }}
+          >
+            Posting Date ↕
+          </button>
+        </div>
+      )}
+
       {/* Event Cards Container - Scrollable */}
-      <div 
+      <div
         className="flex-1 overflow-y-auto p-6 sm:p-8"
         role="region"
         aria-live="polite"
@@ -339,7 +360,7 @@ export default function EventDiscoveryPane() {
             <div className="sr-only" aria-live="polite" aria-atomic="true">
               {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found
             </div>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredEvents.map(event => (
                 <EventCard
                   key={event.id}

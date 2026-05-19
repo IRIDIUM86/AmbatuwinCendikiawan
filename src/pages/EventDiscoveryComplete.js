@@ -24,10 +24,13 @@ export default function EventDiscoveryComplete() {
 
   return (
     <>
-      {/* Desktop Layout: Side-by-side */}
+      {/* Desktop Layout: Side-by-side with wider left pane */}
       <div
-        className="hidden lg:grid lg:grid-cols-2 min-h-[calc(100vh-64px)]"
-        style={{ background: 'oklch(97% 0.008 85)' }}
+        className="hidden lg:grid min-h-[calc(100vh-64px)]"
+        style={{
+          background: '#F8F7F5',
+          gridTemplateColumns: '1fr 400px'
+        }}
       >
         {/* Left Pane - Event Discovery */}
         <EventDiscoveryPane />
@@ -37,9 +40,9 @@ export default function EventDiscoveryComplete() {
       </div>
 
       {/* Mobile/Tablet Layout: Tabbed Interface */}
-      <div 
+      <div
         className="lg:hidden flex flex-col min-h-[calc(100vh-64px)]"
-        style={{ background: 'oklch(97% 0.008 85)' }}
+        style={{ background: '#F8F7F5' }}
       >
         {/* Tab Content */}
         <div className="flex-1 overflow-hidden">

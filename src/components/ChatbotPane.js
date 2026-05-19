@@ -203,32 +203,24 @@ export default function ChatbotPane({ onSendMessage }) {
       }}
     >
       {/* Chat Header */}
-      <div 
-        className="border-b p-5 sm:p-6 relative"
+      <div
+        className="border-b p-4 relative flex items-center gap-2"
         style={{
           background: 'oklch(99% 0.005 85)',
           borderColor: 'oklch(90% 0.01 85)'
         }}
       >
-        <h2 
-          className="text-base sm:text-lg font-bold"
-          style={{ 
+        <span className="text-2xl">🤖</span>
+        <h2
+          className="text-lg font-bold"
+          style={{
             color: 'oklch(25% 0.015 15)',
-            fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-            letterSpacing: '-0.02em'
-          }}
-        >
-          AI Matching Assistant
-        </h2>
-        <p 
-          className="text-xs sm:text-sm font-medium"
-          style={{ 
-            color: 'oklch(45% 0.02 15)',
+            fontFamily: "'Inter', sans-serif",
             letterSpacing: '-0.01em'
           }}
         >
-          Find events that match your vendor needs
-        </p>
+          Ask Assistant
+        </h2>
 
         {/* Welcome tooltip for first-time users */}
         <WelcomeTooltip

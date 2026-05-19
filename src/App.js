@@ -7,7 +7,7 @@ import NotFound from './pages/NotFound'
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen" style={{ background: 'oklch(97% 0.008 85)' }}>
+      <div className="min-h-screen" style={{ background: '#F8F7F5' }}>
         <Navbar />
         <Routes>
           <Route path="/" element={<EventDiscoveryComplete />} />
