@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchAllEventsWithRetry, getUniqueEventTypes, getUniqueLocations } from '../utils/supabaseQueries'
 import apiService from '../services/apiService'
 import API_CONFIG from '../config/api'
@@ -30,6 +31,7 @@ import LoadingIndicator from './LoadingIndicator'
  * Requirements: 4.1, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8
  */
 export default function EventDiscoveryPane() {
+  const navigate = useNavigate()
   // State for events data
   const [events, setEvents] = useState([])
   const [filteredEvents, setFilteredEvents] = useState([])
@@ -154,16 +156,15 @@ export default function EventDiscoveryPane() {
 
   /**
    * Handle vendor application
-   * Placeholder for vendor application logic
+   * Closes the modal and routes to the dedicated apply page with the event preselected.
    */
   const handleApplyAsVendor = async (event) => {
-    try {
-      // TODO: Implement vendor application submission
-      console.log('Applying as vendor for event:', event)
-      // For now, just close the modal
-      handleModalClose()
-    } catch (err) {
-      throw new Error('Failed to submit vendor application')
+    const eventId = event?.bazaar_id || event?.id
+    handleModalClose()
+    if (eventId) {
+      navigate(`/apply?event=${encodeURIComponent(eventId)}`)
+    } else {
+      navigate('/apply')
     }
   }
 

@@ -8,9 +8,9 @@ const CRUD_BASE_URL =
 
 const TIMEOUT_MS = 30000
 
-async function request(path, { method = 'GET', body, token } = {}) {
+async function request(path, { method = 'GET', body, token, timeout } = {}) {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const timer = setTimeout(() => controller.abort(), timeout || TIMEOUT_MS)
 
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
@@ -80,10 +80,11 @@ export const crudApi = {
     request(`/applications/${id}`, { method: 'DELETE' }),
 
   // AI proposal
-  generateProposal: ({ profile, event, notes }) =>
+  generateProposal: (payload) =>
     request('/proposal/generate', {
       method: 'POST',
-      body: { profile, event, notes },
+      body: payload,
+      timeout: 90000,
     }),
 }
 

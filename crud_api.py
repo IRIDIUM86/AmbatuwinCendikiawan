@@ -360,6 +360,9 @@ def generate_proposal():
     body = request.get_json(silent=True) or {}
     profile = body.get("profile") or {}
     event = body.get("event") or {}
+    booth = body.get("booth") or None
+    sponsorship = body.get("sponsorship") or None
+    app_type = (body.get("application_type") or "Vendor").strip()
     extra = (body.get("notes") or "").strip()
 
     if not profile.get("business_name"):
@@ -367,30 +370,99 @@ def generate_proposal():
     if not event.get("event_name"):
         return _err("event.event_name is required", 400)
 
-    prompt = f"""You are a professional copywriter helping a small business apply to a bazaar event. Write a vendor proposal in 4 short paragraphs:
+    business_name = profile.get("business_name")
+    business_type = (profile.get("business_type") or "").replace("_", " ")
+    business_about = profile.get("business_description") or "(not provided)"
+    business_location = profile.get("location") or "(not provided)"
 
-1) A 1-sentence opening that names the event and states intent to apply.
-2) A paragraph describing the business (name, type, what makes it a fit for this event's audience).
-3) A paragraph on operational readiness (booth needs, staffing, logistics) tailored to the event location and date.
-4) A closing that asks for next steps.
+    event_name = event.get("event_name")
+    event_type = event.get("event_type") or "bazaar"
+    event_location = event.get("location") or "(location TBC)"
+    event_venue = event.get("venue_name") or ""
+    event_date = event.get("event_date") or "(date TBC)"
+    event_audience = event.get("target_audience")
+    event_desc = event.get("event_description") or "(no description provided)"
 
-Tone: confident, warm, specific. No marketing fluff. No emojis. No bullet points. Avoid generic phrases like "we are excited" or "synergy". 250-320 words total.
+    booth_block = "(no specific booth selected)"
+    if booth:
+        amenities = []
+        if booth.get("has_electricity"):
+            amenities.append("electricity")
+        if booth.get("has_water"):
+            amenities.append("water")
+        if booth.get("has_storage"):
+            amenities.append("storage")
+        if booth.get("has_parking"):
+            amenities.append("parking")
+        booth_block = (
+            f"Booth #{booth.get('booth_number') or booth.get('booth_id', '')[:6]}"
+            f" at price {booth.get('price') or 'TBC'}"
+            + (f", amenities: {', '.join(amenities)}" if amenities else "")
+            + (f", suitable for: {booth['suitable_for']}" if booth.get("suitable_for") else "")
+        )
+
+    sponsorship_block = "(no sponsorship tier selected)"
+    if sponsorship:
+        sponsorship_block = (
+            f"{sponsorship.get('package_name') or sponsorship.get('tier_level', 'package')}"
+            f" at price {sponsorship.get('price') or 'TBC'}"
+            + (
+                f". Benefits: {sponsorship['benefits']}"
+                if sponsorship.get("benefits")
+                else ""
+            )
+        )
+
+    prompt = f"""You are a senior copywriter drafting a vendor application proposal for a small business owner. Write a polished, specific proposal that the recipient (the event organizer) will actually want to read.
+
+OUTPUT REQUIREMENTS
+- Plain prose, four paragraphs, 260-340 words total.
+- No headings, no bullet lists, no emojis, no em dashes, no markdown.
+- Reference the event by name in paragraph one and the business by name in paragraph two.
+- Mention at least three concrete details that come from the data below (event date, location, audience size, booth amenities, sponsorship tier, business specialty, etc.).
+- Do not invent facts that are not present in the data. If a fact is missing, write around it instead of guessing.
+- Tone: confident, warm, specific, professional. Avoid filler ("we are excited", "synergy", "leverage").
+
+PARAGRAPH PLAN
+1) Open with one sentence stating the business is applying to the event by name, and the application type ({app_type}).
+2) Describe the business: who they are, what they sell, why they fit the event audience and theme.
+3) Operational fit: how the chosen booth or sponsorship plus the event's logistics line up, and any specific needs covered by the notes.
+4) Close with a confident next-step request (a meeting, a confirmation, document submission).
 
 BUSINESS PROFILE
-{json.dumps(profile, indent=2, default=str)}
+- Name: {business_name}
+- Type: {business_type or '(not provided)'}
+- Location: {business_location}
+- About: {business_about}
 
 EVENT
-{json.dumps(event, indent=2, default=str)}
+- Name: {event_name}
+- Type: {event_type}
+- Date: {event_date}
+- Location: {event_location}{f' ({event_venue})' if event_venue else ''}
+- Target audience size: {event_audience if event_audience else '(not provided)'}
+- Description: {event_desc}
 
-ADDITIONAL NOTES FROM VENDOR
+APPLICATION TYPE: {app_type}
+SELECTED BOOTH: {booth_block}
+SELECTED SPONSORSHIP: {sponsorship_block}
+
+VENDOR NOTES (verbatim, weave these in where they fit)
 {extra or '(none)'}
 
-Return ONLY the proposal text, no preamble, no headings."""
+Return ONLY the proposal text. No preamble, no closing remarks like "Here is the proposal:"."""
 
     try:
-        text = llm_service._invoke_bedrock(prompt, max_tokens=900)
-        return _ok({"proposal": text.strip()})
+        text = llm_service._invoke_bedrock(prompt, max_tokens=1100)
+        text = (text or "").strip()
+        if not text:
+            return _err("LLM returned an empty response", 502)
+        return _ok({"proposal": text})
     except Exception as exc:
+        # Surface the underlying Bedrock error so the UI can show it.
+        import traceback
+        traceback.print_exc()
+        print(f"[proposal] LLM error: {exc}")
         return _err(f"LLM error: {exc}", 500)
 
 

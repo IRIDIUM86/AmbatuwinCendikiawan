@@ -41,10 +41,20 @@ export default function ApplyVendor() {
   const [notes, setNotes] = useState('')
   const [proposal, setProposal] = useState('')
 
+  // Lightweight inline profile used as a fallback when the user has no saved
+  // sme_profile yet. Anything they type here is folded into the proposal.
+  const [draftProfile, setDraftProfile] = useState({
+    business_name: '',
+    business_type: 'food_beverage',
+    business_description: '',
+    location: '',
+  })
+
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [proposalError, setProposalError] = useState(null)
   const [submittedId, setSubmittedId] = useState(null)
   const [copied, setCopied] = useState(false)
 
@@ -96,22 +106,64 @@ export default function ApplyVendor() {
     [events, eventId],
   )
 
+  const selectedBooth = useMemo(
+    () => booths.find((b) => b.booth_id === boothId) || null,
+    [booths, boothId],
+  )
+
+  const selectedSponsorship = useMemo(
+    () => sponsorships.find((s) => s.sponsorship_id === sponsorshipId) || null,
+    [sponsorships, sponsorshipId],
+  )
+
+  // Use the saved profile when available, otherwise fall back to whatever
+  // the user typed into the inline draft profile fields.
+  const effectiveProfile = useMemo(() => {
+    if (profile?.business_name) return profile
+    if (draftProfile.business_name.trim()) {
+      return {
+        business_name: draftProfile.business_name.trim(),
+        business_type: draftProfile.business_type,
+        business_description: draftProfile.business_description.trim() || null,
+        location: draftProfile.location.trim() || null,
+        email: user?.email || null,
+      }
+    }
+    return null
+  }, [profile, draftProfile, user])
+
   const generateProposal = async () => {
     setError(null)
-    if (!selectedEvent) return setError('Pick an event first.')
-    if (!profile?.business_name)
-      return setError('Complete your business profile before generating a proposal.')
+    setProposalError(null)
+    if (!selectedEvent) {
+      setProposalError('Pick an event in step 1 first.')
+      return
+    }
+    if (!effectiveProfile) {
+      setProposalError(
+        'Add a business name in the sidebar so the AI can personalize the proposal.',
+      )
+      return
+    }
 
     setGenerating(true)
     try {
       const res = await crudApi.generateProposal({
-        profile,
+        profile: effectiveProfile,
         event: selectedEvent,
+        booth: selectedBooth,
+        sponsorship: selectedSponsorship,
+        application_type: applicationType,
         notes,
       })
-      setProposal((res?.data?.proposal || '').trim())
+      const text = (res?.data?.proposal || res?.proposal || '').trim()
+      if (!text) {
+        setProposalError('The AI returned an empty response. Try again.')
+        return
+      }
+      setProposal(text)
     } catch (err) {
-      setError(err.message || 'Could not generate proposal.')
+      setProposalError(err.message || 'Could not generate proposal.')
     } finally {
       setGenerating(false)
     }
@@ -134,9 +186,11 @@ export default function ApplyVendor() {
         application_type: applicationType,
         bazaar_booth_id: boothId || null,
         sponsorship_package_id: sponsorshipId || null,
-        business_documents: proposal
-          ? { proposal, notes }
-          : { notes: notes || null },
+        business_documents: {
+          proposal: proposal || null,
+          notes: notes || null,
+          draft_profile: !profile && effectiveProfile ? effectiveProfile : null,
+        },
       })
       const created = Array.isArray(res?.data) ? res.data[0] : res?.data
       setSubmittedId(created?.application_id || 'submitted')
@@ -442,6 +496,32 @@ export default function ApplyVendor() {
                 </button>
               }
             >
+              {proposalError && (
+                <div
+                  role="alert"
+                  className="mb-4 px-4 py-3 rounded-lg text-sm"
+                  style={{
+                    background: 'oklch(95% 0.05 25)',
+                    color: 'oklch(35% 0.08 25)',
+                    border: '1px solid oklch(85% 0.06 25)',
+                  }}
+                >
+                  {proposalError}
+                </div>
+              )}
+              {generating && !proposal && (
+                <div
+                  className="mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2"
+                  style={{
+                    background: SURFACE_ALT,
+                    color: TEXT_SECONDARY,
+                    border: `1px solid ${BORDER_LIGHT}`,
+                  }}
+                >
+                  <Loader2 size={14} className="animate-spin" />
+                  Calling Bedrock. This usually takes 5-15 seconds.
+                </div>
+              )}
               <label
                 className="block text-xs font-semibold mb-2 uppercase"
                 style={{ color: TEXT_TERTIARY, letterSpacing: '0.08em' }}
@@ -551,18 +631,72 @@ export default function ApplyVendor() {
                     )}
                   </dl>
                 ) : (
-                  <p className="text-sm" style={{ color: TEXT_TERTIARY }}>
-                    {isAuthed
-                      ? 'No profile yet. Add your details on the profile page so the AI can ground proposals in real info.'
-                      : 'Sign in to load your business profile.'}
-                  </p>
+                  <>
+                    <p
+                      className="text-sm mb-4"
+                      style={{ color: TEXT_TERTIARY, lineHeight: 1.55 }}
+                    >
+                      No saved profile yet. Fill these quick details so the AI
+                      can personalize your proposal. You can save the full
+                      profile later.
+                    </p>
+                    <DraftField
+                      label="Business name"
+                      value={draftProfile.business_name}
+                      onChange={(v) =>
+                        setDraftProfile({ ...draftProfile, business_name: v })
+                      }
+                      placeholder="e.g. Warung Padang Sederhana"
+                    />
+                    <div className="mt-3">
+                      <DraftSelect
+                        label="Type"
+                        value={draftProfile.business_type}
+                        onChange={(v) =>
+                          setDraftProfile({ ...draftProfile, business_type: v })
+                        }
+                        options={[
+                          ['food_beverage', 'Food & Beverage'],
+                          ['retail', 'Retail'],
+                          ['services', 'Services'],
+                          ['fashion', 'Fashion'],
+                          ['health_wellness', 'Health & Wellness'],
+                          ['entertainment', 'Entertainment'],
+                          ['other', 'Other'],
+                        ]}
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <DraftField
+                        label="Location"
+                        value={draftProfile.location}
+                        onChange={(v) =>
+                          setDraftProfile({ ...draftProfile, location: v })
+                        }
+                        placeholder="City, region"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <DraftTextarea
+                        label="What you sell / your edge"
+                        value={draftProfile.business_description}
+                        onChange={(v) =>
+                          setDraftProfile({
+                            ...draftProfile,
+                            business_description: v,
+                          })
+                        }
+                        placeholder="One or two sentences about your business: signature items, capacity, what makes you a good fit."
+                      />
+                    </div>
+                  </>
                 )}
                 <Link
                   to="/profile"
                   className="inline-block mt-4 text-sm font-semibold"
                   style={{ color: TERRACOTTA }}
                 >
-                  Edit profile →
+                  {profile ? 'Edit profile →' : 'Save full profile →'}
                 </Link>
               </Card>
 
@@ -571,9 +705,9 @@ export default function ApplyVendor() {
                   className="text-sm"
                   style={{ color: TEXT_SECONDARY, lineHeight: 1.6 }}
                 >
-                  The AI proposal uses your business name, type, and the event
-                  details. Add specifics in the notes field for the strongest
-                  draft.
+                  The AI proposal uses your business details, the event, and
+                  any booth or sponsorship you picked. Add specifics in the
+                  notes field for the strongest draft.
                 </p>
               </Card>
             </div>
@@ -652,6 +786,91 @@ function Row({ label, value }) {
         {label}
       </dt>
       <dd style={{ color: TEXT_PRIMARY }}>{value}</dd>
+    </div>
+  )
+}
+
+function DraftField({ label, value, onChange, ...rest }) {
+  return (
+    <div>
+      <label
+        className="block text-xs font-semibold mb-2 uppercase"
+        style={{ color: TEXT_TERTIARY, letterSpacing: '0.08em' }}
+      >
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        {...rest}
+        className="w-full px-3 py-2.5 rounded-lg outline-none text-sm"
+        style={{
+          background: SURFACE_ALT,
+          border: `2px solid ${BORDER}`,
+          color: TEXT_PRIMARY,
+        }}
+        onFocus={(e) => (e.target.style.borderColor = TERRACOTTA)}
+        onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      />
+    </div>
+  )
+}
+
+function DraftSelect({ label, value, onChange, options }) {
+  return (
+    <div>
+      <label
+        className="block text-xs font-semibold mb-2 uppercase"
+        style={{ color: TEXT_TERTIARY, letterSpacing: '0.08em' }}
+      >
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2.5 rounded-lg outline-none text-sm"
+        style={{
+          background: SURFACE_ALT,
+          border: `2px solid ${BORDER}`,
+          color: TEXT_PRIMARY,
+        }}
+        onFocus={(e) => (e.target.style.borderColor = TERRACOTTA)}
+        onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      >
+        {options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function DraftTextarea({ label, value, onChange, ...rest }) {
+  return (
+    <div>
+      <label
+        className="block text-xs font-semibold mb-2 uppercase"
+        style={{ color: TEXT_TERTIARY, letterSpacing: '0.08em' }}
+      >
+        {label}
+      </label>
+      <textarea
+        value={value}
+        rows={3}
+        onChange={(e) => onChange(e.target.value)}
+        {...rest}
+        className="w-full px-3 py-2.5 rounded-lg outline-none text-sm"
+        style={{
+          background: SURFACE_ALT,
+          border: `2px solid ${BORDER}`,
+          color: TEXT_PRIMARY,
+        }}
+        onFocus={(e) => (e.target.style.borderColor = TERRACOTTA)}
+        onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      />
     </div>
   )
 }
