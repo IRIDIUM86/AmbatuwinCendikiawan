@@ -1,4 +1,4 @@
-# Requirements Document: SME Event Discovery Complete UI
+# Requirements Document
 
 ## Introduction
 

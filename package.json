@@ -22,8 +22,9 @@
     "tailwindcss": "^3.3.0"
   },
   "scripts": {
-    "start": "concurrently -n backend,frontend -c blue,green \"npm:start:backend\" \"npm:start:frontend\"",
+    "start": "concurrently -n backend,crud,frontend -c blue,magenta,green \"npm:start:backend\" \"npm:start:crud\" \"npm:start:frontend\"",
     "start:backend": "venv\\Scripts\\python api_server.py",
+    "start:crud": "venv\\Scripts\\python crud_api.py",
     "start:frontend": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
